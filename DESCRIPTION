@@ -1,0 +1,15 @@
+Package: fmatrix
+Type: Package
+Title: F-Matrix Manipulation
+Version: 20200729-043900
+Author: Rajanala Samyak, Julia Palacios
+Maintainer: Julia Palacios <juliapr@stanford.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT License
+Depends: 
+	phylodyn, 
+	ape
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0

@@ -1,0 +1,9 @@
+^.*\.Rproj$
+^.*\.Rhistory$
+^temp\.RData$
+^\.Rproj\.user$
+^data
+^Rscripts
+^sim
+^vignettes
+^analysis

@@ -1,0 +1,280 @@
+---
+title: "Generating Figures"
+author: 'R Samyak'
+date: "01/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(fmatrix)
+library(tidyverse)
+library(tidyselect)
+library(ggallin)
+library(latex2exp)
+library(gridExtra)
+```
+
+```{r}
+data("simulations-data")
+
+means_list_large_n <- lapply(iso.Fmat.list, sa_mean, temp.schedule = "exp", alpha = .9995)
+
+png("means_list_large_n.png", height = 500, width = 2500)
+plotF.list(means_list_large_n[length(means_list_large_n):1], ncol = 5)
+```
+
+```{r}
+set.seed(12)
+temp <- gen_Fmat(rcoal(8, br = 1))
+
+png("matching.png", height = 400, width = 400)
+plotF(temp, 
+      node.labels = T,
+      tip.labels = T)
+mymatching(mytree_from_F(temp))
+```
+
+
+```{r}
+betas = c(seq(-1,0, by = .05), seq(0, 1, by = .2)[-1], seq(1, 10, by = 1,)[-1], seq(10, 100, by = 10)[-1])
+
+
+
+F.lists <- list(F.list5, F.list6, F.list7, F.list8, F.list9)
+
+var.list.king <- meandist.list.king <- rep(NA, length(F.lists))
+var.list <- meandist.list <- matrix(NA, length(F.lists), length(betas))
+means.list.king <- list()
+means.list <- list()
+
+for(i in 1:length(F.lists)){
+  kingprob <- sapply(F.lists[[i]], kingman_likelihood)
+  betaprob <- sapply(F.lists[[i]], beta_BF_likelihood, betas = betas)
+  cat(sprintf("\n %d \n", i))
+  
+  kingtemp <- fmatrix:::frechet_var_pop(F.lists[[i]], kingprob)
+  
+  meandist.list.king[i] <- kingtemp$meandist
+  var.list.king[i] <- kingtemp$var
+  means.list.king[[i]] <- kingtemp$fmean
+  
+  templist <- list()
+  for(j in 1:length(betas)){
+    cat(sprintf("\r %d", j))
+    temp <- fmatrix:::frechet_var_pop(F.lists[[i]], betaprob[j, ])
+    
+    meandist.list[i, j] <- temp$meandist
+    var.list[i, j] <- temp$var
+    templist[[j]] <- temp$fmean
+  }
+  means.list[[i]] <- templist
+}
+
+
+indexes <- c(1, 21, 44)
+betas[indexes]
+plotlist <- c(means.list[[1]][indexes], 
+              means.list[[2]][indexes], 
+              means.list[[3]][indexes], 
+              means.list[[4]][indexes], 
+              means.list[[5]][indexes])
+png("means_list_small_n.png", width = 600, height = 1000)
+plotF.list(plotlist, nrow = 5)
+
+dev.off()
+
+colnames(var.list) <- colnames(meandist.list) <- 1:length(betas)
+rownames(var.list) <- rownames(var.list) <- NULL
+
+df1 <- data.frame(var.list) %>% 
+  cbind(n = 5:9) %>%
+  pivot_longer(cols = !matches("n"), names_to = "betan") %>%
+  mutate(betan = str_remove(betan, "X")) %>%
+  left_join(data.frame(beta = betas, betan = as.character(1:length(betas)))) %>%
+  select(-betan) %>%
+  rename(var := value)
+
+df2 <- data.frame(meandist.list) %>% 
+  cbind(n = 5:9) %>%
+  pivot_longer(cols = !matches("n"), names_to = "betan") %>%
+  mutate(betan = str_remove(betan, "X")) %>%
+  left_join(data.frame(beta = betas, betan = as.character(1:length(betas)))) %>%
+  select(-betan) %>%
+  rename(meandist := value)
+
+df <- left_join(df1, df2)
+
+kingdf <- data.frame(n = 5:9, kingvar = var.list.king, kingmeandist = meandist.list.king)
+
+df <- left_join(df, kingdf)
+
+
+
+mytrans <- pseudolog10_trans
+
+mytrans$name <- "new_log"
+mytrans$transform <- function(x){ log ( 1.5 + x ) }
+mytrans$inverse <- function(x){exp(x) - 1.5}
+
+# mybreaks <- round(exp(seq(log(0.5), log(100.5), length.out = 8)) - 1.5, 1)
+mybreaks <- c(-1, -.6, 0, 1, 3, 8.5, 20, 45, 100)
+
+p1 <- ggplot(df, aes(x = beta, y = var, colour = as.factor(n))) + 
+  theme_bw() + 
+  scale_x_continuous(trans = mytrans, breaks = mybreaks) +
+  geom_line() + 
+  geom_point() + 
+  labs(color = "n", y = "Frechet Variance", x = TeX("$\\beta$ for the Blum-Francois model"))
+
+ggsave(p1, width = 8, height = 6, filename = "frechet_var_n.png")  
+
+p2 <- ggplot(df, aes(x = beta, y = meandist, colour = as.factor(n))) + 
+  theme_bw() + 
+  scale_x_continuous(trans = mytrans, breaks = mybreaks) +
+  geom_line() + 
+  geom_point() + 
+  labs(color = "n", y = "Average distance to Frechet Mean", x = TeX("$\\beta$ for the Blum-Francois model"))
+
+ggsave(p2, width = 8, height = 6, filename = "frechet_meandist_n.png") 
+
+p11 <- ggplot(df, aes(x = beta, y = var/kingvar, colour = as.factor(n))) + 
+  theme_bw() + 
+  scale_x_continuous(trans = mytrans, breaks = mybreaks) +
+  geom_line() + 
+  geom_point() + 
+  labs(color = "n", y = "Frechet Variance (normalised)", x = TeX("$\\beta$ for the Blum-Francois model"))
+
+ggsave(p11, width = 8, height = 6, filename = "frechet_var_n_norm.png")  
+
+p21 <- ggplot(df, aes(x = beta, y = meandist/kingmeandist, colour = as.factor(n))) + 
+  theme_bw() + 
+  scale_x_continuous(trans = mytrans, breaks = mybreaks) +
+  geom_line() + 
+  geom_point() + 
+  labs(color = "n", y = "Avg. dist. to Frechet Mean (normalised)", x = TeX("$\\beta$ for the Blum-Francois model"))
+
+
+ggsave(p21, width = 8, height = 6, filename = "frechet_meandist_n_norm.png") 
+
+
+p <- grid.arrange(p1, p2, p11, p21, ncol = 2)
+ggsave(p, filename = "frechet_all.png", width = 8, height = 6)
+
+```
+
+
+```{r}
+betas = c(seq(-1,0, by = .05), seq(0, 1, by = .2)[-1], seq(1, 10, by = 1,)[-1], seq(10, 100, by = 10)[-1])
+
+F.lists <- list(F.list5, F.list6, F.list7, F.list8, F.list9)
+
+entropy.list.king  <- rep(NA, length(F.lists))
+entropy.list <- matrix(NA, length(F.lists), length(betas))
+
+
+for(i in 1:length(F.lists)){
+  kingprob <- sapply(F.lists[[i]], kingman_likelihood)
+  betaprob <- sapply(F.lists[[i]], beta_BF_likelihood, betas = betas)
+  cat(sprintf("\n %d \n", i))
+  
+  kingtemp <- entropy_pop(kingprob)
+  
+  entropy.list.king[i] <- kingtemp
+  
+  templist <- list()
+  for(j in 1:length(betas)){
+    cat(sprintf("\r %d", j))
+    temp <- entropy_pop(betaprob[j, ])
+    
+    entropy.list[i, j] <- temp
+  }
+}
+
+
+indexes <- c(1, 11, 21, 26, 35, 44)
+betas[indexes]
+
+colnames(entropy.list) <- 1:length(betas)
+rownames(entropy.list) <- NULL
+
+df3 <- data.frame(entropy.list) %>% 
+  cbind(n = 5:9) %>%
+  pivot_longer(cols = !matches("n"), names_to = "betan") %>%
+  mutate(betan = str_remove(betan, "X")) %>%
+  left_join(data.frame(beta = betas, betan = as.character(1:length(betas)))) %>%
+  select(-betan) %>%
+  rename(entropy := value)
+
+df <- left_join(df, df3)
+
+kingdf <- data.frame(n = 5:9, kingent = entropy.list.king)
+
+df <- left_join(df, kingdf)
+
+library(ggallin)
+library(latex2exp)
+library(gridExtra)
+
+mytrans <- pseudolog10_trans
+
+mytrans$name <- "new_log"
+mytrans$transform <- function(x){ log ( 1.5 + x ) }
+mytrans$inverse <- function(x){exp(x) - 1.5}
+
+# mybreaks <- round(exp(seq(log(0.5), log(100.5), length.out = 8)) - 1.5, 1)
+mybreaks <- c(-1, -.6, 0, 1, 3, 8.5, 20, 45, 100)
+
+pe1 <- ggplot(df, aes(x = beta, y = entropy, colour = as.factor(n))) + 
+  theme_bw() + 
+  scale_x_continuous(trans = mytrans, breaks = mybreaks) +
+  geom_line() + 
+  geom_point() + 
+  labs(color = "n", y = "Entropy", x = TeX("$\\beta$ for the Blum-Francois model"))
+
+ggsave(pe1, width = 8, height = 6, filename = "entropy_n.png")  
+
+
+pe11 <- ggplot(df, aes(x = beta, y = entropy/kingent, colour = as.factor(n))) + 
+  theme_bw() + 
+  scale_x_continuous(trans = mytrans, breaks = mybreaks) +
+  geom_line() + 
+  geom_point() + 
+  labs(color = "n", y = "Entropy (normalised)", x = TeX("$\\beta$ for the Blum-Francois model"))
+
+ggsave(pe11, width = 8, height = 6, filename = "entropy_n_norm.png")  
+
+
+p <- grid.arrange(pe1, pe11, ncol = 2)
+ggsave(p, filename = "entropy_all.png", width = 8, height = 3)
+
+```
+
+
+```{r}
+
+data("simulations-data")
+
+mean <- sa_mean(iso.Fmat.list[[3]], temp.schedule = "exp", alpha = .9995, track = TRUE)
+
+tracked <- mean$track_list
+
+df <- data.frame(index = 1:length(tracked$acceptance), 
+                 energy = tracked$energy.config,
+                 temp = tracked$temp)
+
+p <- ggplot(df, aes(x = index, y = temp)) + 
+  geom_point(size = .8) + theme_bw() + 
+  labs(x = "Iteration", y = "Temperature")
+
+ggsave(p, filename = "example_temperature.png", width = 4, height = 3)
+
+q <- ggplot(df, aes(x = index, y = energy)) + 
+  geom_point(size = .8) + theme_bw() + 
+  labs(x = "Iteration", y = "Energy")
+q
+
+ggsave(q, filename = "example_energy.png", width = 4, height = 3)
+
+```

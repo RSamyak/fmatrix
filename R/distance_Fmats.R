@@ -1,0 +1,58 @@
+#'
+#' @param Fmat1
+#' @param Fmat2
+#' @param dist
+#'
+#' @export
+
+distance_Fmat <- function(Fmat1, Fmat2, dist = c("l1", "l2"), scale = NULL){
+
+  n <- ncol(Fmat1) + 1
+
+  if(is.null(scale)) scale = rep(1, n - 1)
+  else if(scale == 1) scale = 2:n
+
+  dist <- match.arg(dist)
+
+  # if(is.Fmat(Fmat1[[1]]))
+
+  ## Vectorise this thing
+
+  if(dist == "l1"){
+    return(mean(abs( diag(1/scale) %*% (Fmat1 - Fmat2) ) ))
+  }
+
+  if(dist == "l2"){
+    return(sqrt(mean(( diag(1/scale) %*% (Fmat1 - Fmat2) )**2)))
+  }
+
+  warning("dist not valid, returning error.")
+  return(-1)
+}
+
+#'
+#' @param Fmat1
+#' @param Fmat2
+#' @param dist
+#'
+#' @export
+
+distance_Fmat_weighted <- function(wFmat1, wFmat2, dist = c("l1", "l2")){
+
+  dist <- match.arg(dist)
+
+  # if(is.Fmat(Fmat1[[1]]))
+
+  ## Vectorise this thing
+
+  if(dist == "l1"){
+    return(mean(abs(wFmat1$f * wFmat$w - wFmat2$f * wFmat2$w)))
+  }
+
+  if(dist == "l2"){
+    return(sqrt(mean((wFmat1$f * wFmat$w - wFmat2$f * wFmat2$w)**2)))
+  }
+
+  warning("dist not valid, returning error.")
+  return(-1)
+}

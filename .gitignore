@@ -37,3 +37,22 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+*.aux
+*.out
+*.log
+*.blg
+*.bbl
+Latex/draft_ver2.pdf
+Latex/draft_ver2.synctex.gz
+Latex/Figures/F_forward_chain-eps-converted-to.pdf
+Latex/bf-beta.pdf
+Latex/bf-beta.synctex.gz
+
+analysis/*
+sim/*
+Rscripts/png/*
+*.RData
+*.RDS
+*.fasta
+*.trees
+*.mcc
