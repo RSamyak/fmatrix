@@ -13,5 +13,5 @@ Compare x and y in signed distance order
 @param x
  @param y
 
- @export `%<d%`
+ @export "%<d%"
 }

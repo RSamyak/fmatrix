@@ -6,10 +6,9 @@
 \usage{
 x \%>d\% y
 }
+\arguments{
+\item{y}{}
+}
 \description{
 Compare x and y in signed distance order in reverse
-}
-\details{
-@param x
- @param y
 }

@@ -12,6 +12,4 @@ Compare x and y in dictionary order
 \details{
 @param x
  @param y
-
- @export `%<=%`
 }

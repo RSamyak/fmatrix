@@ -50,7 +50,7 @@ brute.mean<-function(sampleF,totalF.list, dist=c("l1","l2")){
 #' @param dist
 #'
 #' @export brute.mean.weighted
-brute.mean.weighted<-function(sampleF, totalF.list, dist=c("l1","l2"), weights){
+brute.mean.weighted<-function(sampleF, totalF.list, dist=c("l2","l1"), weights){
   ##Brute force frechet mean  (weighted)
 
   dist <- match.arg(dist)

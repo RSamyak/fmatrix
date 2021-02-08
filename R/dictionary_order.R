@@ -5,8 +5,8 @@
 #'  @param x
 #'  @param y
 #'
-#'  @export `%<=%`
-`%<=%` <- function(x, y){
+#' @export "%<=%"
+"%<=%" <- function(x, y){
   n <- min(length(x), length(y))
 
   for(i in 1:n){
@@ -25,10 +25,43 @@
 #'  @param x
 #'  @param y
 #'
-
-#' @export `%>=%`
-`%>=%` <- function(x, y){
+#' @export "%>=%"
+"%>=%" <- function(x, y){
   `%<=%`(y, x)
+}
+
+#'  Compare in signed distance order
+#'
+#'  Compare x and y in signed distance order
+#'
+#'  @param x
+#'  @param y
+#'
+#'  @export "%<d%"
+"%<d%" <- function(x, y, tol = 1e-6, ...){
+
+  f <- function(u){signed_dist(u, ...)}
+
+  fx <- f(x)
+  fy <- f(y)
+  if(fy < fx) return(FALSE)
+
+  ## This is not perfect
+  if(abs(fx - fy) < tol) return(t(x) %<=% t(y))
+
+  return(TRUE)
+}
+
+#' Compare in signed distance order in reverse
+#'
+#' Compare x and y in signed distance order in reverse
+#'
+#' @param x
+#' @param y
+#'
+#' @export "%>d%"
+"%>d%" <- function(x, y, ...){
+  `%<d%`(y, x, ...)
 }
 
 
@@ -93,19 +126,36 @@ precomp_bal_unb_kin <- function(n){
 #' @export sort_Flist
 sort_Flist <- function(F.list,
                        n = ncol(F.list[[1]]) + 1,
-                       return_dist = FALSE){
+                       return_dist = FALSE,
+                       tol = 1e-8){
 
   precomp <- precomp_bal_unb_kin(n)
 
   signed_distances <- sapply(F.list, signed_dist, precomp = precomp)
 
+  tables <- table(signed_distances)
+  tables <- tables[tables >= 2]
+  values <- as.numeric(names(tables))
+
   o <- order(signed_distances)
 
+  F.list <- F.list[o]
+  signed_distances <- signed_distances[o]
+
+  if(length(tables) > 1) {
+    for(i in 1:length(tables)){
+      oo <- which(abs(signed_distances - values[i]) <= tol)
+      F.list[oo] <- bubbleSort(F.list[oo], function(x,y){`%>=%`(t(x), t(y))})
+    }
+  }
+
+
+
   if(return_dist){
-    ret <- list(F.list = F.list[o],
+    ret <- list(F.list = F.list,
                 distances = signed_distances)
   } else{
-    ret <- F.list[o]
+    ret <- F.list
   }
 
   return(ret)
@@ -113,32 +163,4 @@ sort_Flist <- function(F.list,
 
 
 
-#'  Compare in signed distance order
-#'
-#'  Compare x and y in signed distance order
-#'
-#'  @param x
-#'  @param y
-#'
-#'  @export `%<d%`
-`%<d%` <- function(x, y, ...){
-
-  f <- function(u){signed_dist(u, ...)}
-
-  if(f(y) < f(x)) return(FALSE)
-  return(TRUE)
-}
-
-#'  Compare in signed distance order in reverse
-#'
-#'  Compare x and y in signed distance order in reverse
-#'
-#'  @param x
-#'  @param y
-#'
-
-#' @export `%>d%`
-`%>d%` <- function(x, y, ...){
-  `%<d%`(y, x, ...)
-}
 

@@ -19,11 +19,11 @@ distance_Fmat <- function(Fmat1, Fmat2, dist = c("l1", "l2"), scale = NULL){
   ## Vectorise this thing
 
   if(dist == "l1"){
-    return(mean(abs( diag(1/scale) %*% (Fmat1 - Fmat2) ) ))
+    return(sum(abs( diag(1/scale) %*% (Fmat1 - Fmat2) ) ))
   }
 
   if(dist == "l2"){
-    return(sqrt(mean(( diag(1/scale) %*% (Fmat1 - Fmat2) )**2)))
+    return(sqrt(sum(( diag(1/scale) %*% (Fmat1 - Fmat2) )**2)))
   }
 
   warning("dist not valid, returning error.")
@@ -46,11 +46,11 @@ distance_Fmat_weighted <- function(wFmat1, wFmat2, dist = c("l1", "l2")){
   ## Vectorise this thing
 
   if(dist == "l1"){
-    return(mean(abs(wFmat1$f * wFmat$w - wFmat2$f * wFmat2$w)))
+    return(sum(abs(wFmat1$f * wFmat$w - wFmat2$f * wFmat2$w)))
   }
 
   if(dist == "l2"){
-    return(sqrt(mean((wFmat1$f * wFmat$w - wFmat2$f * wFmat2$w)**2)))
+    return(sqrt(sum((wFmat1$f * wFmat$w - wFmat2$f * wFmat2$w)**2)))
   }
 
   warning("dist not valid, returning error.")

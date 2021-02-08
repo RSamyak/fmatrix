@@ -6,7 +6,7 @@
 #' @param dist
 #'
 #' @export frechet_var_sample
-frechet_var_sample <- function(F.list, dist = c("l1", "l2")){
+frechet_var_sample <- function(F.list, dist = c("l2", "l1")){
   dist <- match.arg(dist)
 
   sample_mean_Fmat <- F.list[[brute.mean(F.list, F.list, dist = dist)]]
@@ -29,7 +29,7 @@ frechet_var_sample <- function(F.list, dist = c("l1", "l2")){
 #' @param dist
 #'
 #' @export frechet_var_pop
-frechet_var_pop <- function(F.list, probs, dist = c("l1", "l2")){
+frechet_var_pop <- function(F.list, probs, dist = c("l2", "l1")){
   dist <- match.arg(dist)
 
   sample_mean_Fmat <- F.list[[brute.mean.weighted(F.list, F.list, dist = dist, weights = probs)]]
