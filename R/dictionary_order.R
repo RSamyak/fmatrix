@@ -127,9 +127,8 @@ precomp_bal_unb_kin <- function(n){
 sort_Flist <- function(F.list,
                        n = ncol(F.list[[1]]) + 1,
                        return_dist = FALSE,
+                       precomp = precomp_bal_unb_kin(n),
                        tol = 1e-8){
-
-  precomp <- precomp_bal_unb_kin(n)
 
   signed_distances <- sapply(F.list, signed_dist, precomp = precomp)
 
