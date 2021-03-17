@@ -1,7 +1,7 @@
 Package: fmatrix
 Type: Package
 Title: F-Matrix Manipulation
-Version: 20200729-043900
+Version: 20210301-050000
 Author: Rajanala Samyak, Julia Palacios
 Maintainer: Julia Palacios <juliapr@stanford.edu>
 Description: More about what it does (maybe more than one line)

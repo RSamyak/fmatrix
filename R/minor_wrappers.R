@@ -26,8 +26,10 @@ num_cherries <- function(Fmat){
 #' @param dist
 #'
 #' @export brute.mean
-brute.mean<-function(sampleF,totalF.list, dist=c("l1","l2")){
+brute.mean<-function(sampleF,totalF.list, dist=c("l2","l1")){
   ##Brute force frechet mean
+
+  warning("deprecated function")
 
   dist <- match.arg(dist)
   dist.matrix<-matrix(0,nrow=length(totalF.list),ncol=length(sampleF))
@@ -50,26 +52,56 @@ brute.mean<-function(sampleF,totalF.list, dist=c("l1","l2")){
 #' @param dist
 #'
 #' @export brute.mean.weighted
-brute.mean.weighted<-function(sampleF, totalF.list, dist=c("l2","l1"), weights){
+brute.mean.weighted<-function(sampleF,
+                              totalF.list,
+                              dist=c("l2","l1"),
+                              weights = rep(1, length(sampleF))){
   ##Brute force frechet mean  (weighted)
 
   dist <- match.arg(dist)
-  dist.matrix<-matrix(0,nrow=length(totalF.list),ncol=length(sampleF))
-  if(dist == "l1") for (j in 1:length(totalF.list)){
-    for (i in 1:length(sampleF)){
-      dist.matrix[j,i]<-sum(abs(totalF.list[[j]]-sampleF[[i]]))
+
+  if (dist == "l1") {
+    dist.matrix<-matrix(0,nrow=length(totalF.list),ncol=length(sampleF))
+    for (j in 1:length(totalF.list)) {
+      for (i in 1:length(sampleF)) {
+        dist.matrix[j, i] <- sum(abs(totalF.list[[j]] - sampleF[[i]]))
+      }
     }
-  }
-  if(dist == "l2") for (j in 1:length(totalF.list)){
-    for (i in 1:length(sampleF)){
-      dist.matrix[j,i]<-sum((totalF.list[[j]]-sampleF[[i]])**2)
+
+    #TODO: Change this to sweep
+    dist.matrix <- dist.matrix %*% diag(weights)
+
+    total<-apply(dist.matrix,1,sum)
+    ret <- which(total == min(total, na.rm = TRUE))
+    if(length(ret) > 1) {
+      ret <- ret[1]
+      warning("minimiser not unique")
     }
   }
 
-  dist.matrix <- dist.matrix %*% diag(weights)
+  if(dist == "l2") {
+    Mmat <- meanF(sampleF, weights = weights)
 
-  total<-apply(dist.matrix,1,sum)
-  return(which.min(total))
+    distances <- rep(NA, length(totalF.list))
+
+    for (j in 1:length(totalF.list)){
+      # for (i in 1:length(sampleF)){
+      #   dist.matrix[j,i]<-sum((totalF.list[[j]]-sampleF[[i]])**2)
+      # }
+      distances[j] <- mean( (Mmat - totalF.list[[j]])**2  )
+    }
+
+    ret <- which(distances == min(distances, na.rm = TRUE))
+    if(length(ret) > 1) {
+      ret <- ret[1]
+      warning("minimiser not unique")
+    }
+    # ret <- which.min(distances)
+
+  }
+
+
+  return(ret)
 }
 
 
@@ -101,7 +133,7 @@ plotF <- function(Fmat, node.labels = NULL, tip.labels = NULL, ...){
 plotT <- function(tree, ...){
   ## Wrapper to plot phylo
   par(mar = c(2,2,2,2))
-  ape::plot.phylo(tree,
+  ape::plot.phylo(ape::ladderize(tree),
                   # direction = "downwards",
                   show.tip.label = FALSE, ...)
   ape::axisPhylo()
@@ -169,10 +201,13 @@ plotF.list.png <- function(F.list, folder = "new", ...){
 meanF <- function(F.list, weights=rep(1,length(F.list))){
   ## Naive weighted mean function for F-matrices, output need not be F-matrix, but rounded F-matrix is close?
 
+
   n <- ncol(F.list[[1]]) + 1
 
   out <- matrix(0, n-1, n-1)
   for (i in 1:length(F.list)){
+    ##TODO: change this to more robust by mu <- (mu + F.list[[i]]*weights[[i]])*ratio
+    ## keep track of sum of weights
     out <- out + weights[i]*F.list[[i]]
   }
   return(out/sum(weights))

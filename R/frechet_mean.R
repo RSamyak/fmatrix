@@ -43,7 +43,7 @@ sa_mean <-
 
       energy <- function(state, matr=matrix_F, d="l2"){
 
-        state.F <- reduce_to_vector(gen_Fmat(tree_from_matching(state)))
+        state.F <- reduce_to_vector(phylodyn:::gen_Fmat(tree_from_matching(state)))
 
         if(d == "l1") distances <- sum(abs(matr - state.F))/n
         if(d == "l2") distances <- sqrt(sum((matr - state.F)**2)/n)

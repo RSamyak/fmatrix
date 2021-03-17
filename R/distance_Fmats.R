@@ -1,3 +1,6 @@
+#' Evaluate Distance between Fmatrices
+#'
+#' Evaluate Distance between Fmatrices
 #'
 #' @param Fmat1
 #' @param Fmat2
@@ -5,7 +8,7 @@
 #'
 #' @export
 
-distance_Fmat <- function(Fmat1, Fmat2, dist = c("l1", "l2"), scale = NULL){
+distance_Fmat <- function(Fmat1, Fmat2, dist = c("l2", "l1"), scale = NULL){
 
   n <- ncol(Fmat1) + 1
 
@@ -30,14 +33,18 @@ distance_Fmat <- function(Fmat1, Fmat2, dist = c("l1", "l2"), scale = NULL){
   return(-1)
 }
 
+
+#' Evaluate weighted Distance between Fmatrices
 #'
-#' @param Fmat1
-#' @param Fmat2
+#' Evaluate weighted Distance between Fmatrices
+#'
+#' @param wFmat1
+#' @param wFmat2
 #' @param dist
 #'
 #' @export
 
-distance_Fmat_weighted <- function(wFmat1, wFmat2, dist = c("l1", "l2")){
+distance_Fmat_weighted <- function(wFmat1, wFmat2, dist = c("l2", "l1")){
 
   dist <- match.arg(dist)
 
