@@ -23,6 +23,7 @@ find_sa_mean <- function(input,
     cat("\nFinished computing F-matrices\n")
     Finfo_sublist <- lapply(Fmat_sublist, function(u) u[[2]])
     Fmat_sublist <- lapply(Fmat_sublist, function(u) u[[1]])
+    Fmat_sublist <- lapply(Fmat_sublist, function(mat) mat[-1, -1])
     hEncod_sublist <- lapply(trees_sublist, gen_hEncod)
     cat("\nFinished computing Encodings\n")
 
@@ -41,15 +42,16 @@ find_sa_mean <- function(input,
       return(ret.list)
     }
 
-    matrix_F <- matr_list(Fmat_sublist, Finfo_sublist)
+    # matrix_F <- matr_list(Fmat_sublist, Finfo_sublist)
   } else{
     trees_sublist <- input$trees_sublist
-    matrix_F <- input$matrix_F
+    # matrix_F <- input$matrix_F
     Fmat_sublist <- input$Fmat_sublist
     Finfo_sublist <- input$Finfo_sublist
     hEncod_sublist <- input$hEncod_sublist
   }
 
+  Mmat <- meanF(Fmat_sublist)
 
 
   #########
@@ -63,7 +65,7 @@ find_sa_mean <- function(input,
 
   config <- gen_hEncod(init)
 
-  e1 <- energy(config, matrix_F) # note sample has been set to default
+  e1 <- energy(config, Mmat = Mmat, d = "l2") # note sample has been set to default
 
 
   min.energy <- Inf
@@ -86,7 +88,7 @@ find_sa_mean <- function(input,
   for(i in 1:max.iter){
     if(i %% 10 == 0) cat(i, ".. ")
     new <- proposal_hEncod(config)
-    e2 <- energy(new, matrix_F)
+    e2 <- energy(new, Mmat)
 
     prob <- probab(e1, e2, temp)
 
@@ -164,7 +166,7 @@ find_sa_mean <- function(input,
       Fmat_sublist = Fmat_sublist,
       Finfo_sublist = Finfo_sublist,
       hEncod_sublist = hEncod_sublist,
-      matrix_F = matrix_F,
+      Mmat = Mmat,
       filename = filename
     )
     ret.obj$data_list <- data_list

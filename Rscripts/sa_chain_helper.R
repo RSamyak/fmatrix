@@ -8,44 +8,52 @@ weight_matr <- function(u.t){
 
 }
 
-matr_list <- function(list, info.list){
-
-  k <- length(list)
-
-  sapply(1:k, function(u){
-    info <- info.list[[u]]
-    Fmat <- list[[u]]
-    ret <- Fmat[-1, -1]
-    weights <- weight_matr(info$t)
-
-    reduce_to_vector(ret * weights, diag = TRUE)
-  })
-
-}
+# Fmatr_list <- function(list, info.list){
+#
+#   k <- length(list)
+#
+#   sapply(1:k, function(u){
+#     info <- info.list[[u]]
+#     Fmat <- list[[u]]
+#     ret <- Fmat[-1, -1]
+#     # weights <- weight_matr(info$t)
+#
+#     reduce_to_vector(ret, diag = TRUE)
+#     # reduce_to_vector(ret * weights, diag = TRUE)
+#   })
+#
+# }
 
 # matrix_F <- matr_list(Fmat_sublist, Finfo_sublist)
 # matrix_F <- matr_list(Fmat_sublist[1:10], Finfo_sublist[1:10])
 
-energy <- function(state, matr = matrix_F, d="l2"){
+energy <- function(state, Mmat, d="l2"){
 
-  n <- ncol(matr)
+  # n <- ncol(Mmat) + 1
 
   tr <- tree_from_hEncod(state)
   tr.dat <- phylodyn:::gen.tr.data(tr)
 
-  state.F <- tr.dat$Fmat[-1, -1] * weight_matr(tr.dat$u.info$t)
-  state.F <- reduce_to_vector(state.F, diag = TRUE)
+  state.F <- tr.dat$Fmat[-1, -1]
+  # state.F <- tr.dat$Fmat[-1, -1] * weight_matr(tr.dat$u.info$t)
 
-  if(d == "l1") distances <-
-    sum(abs( (matr - state.F)
-             # %*% diag(1/scaling_vector(n, type = type))
-    ))/n
-  if(d == "l2") distances <-
-    sqrt(sum(( (matr - state.F)
-               # %*% diag(1/scaling_vector(n, type = type))
-    )**2)/n)
+  # state.F <- reduce_to_vector(state.F, diag = TRUE)
 
-  return(mean(distances))
+  if(d == "l1") {
+    stop("l1 not accepted")
+    # distances <-
+    # sum(abs( (matr - state.F)
+    #          # %*% diag(1/scaling_vector(n, type = type))
+    # ))/n
+  }
+  if(d == "l2") {
+    ret <- sqrt(mean((state.F - Mmat)**2))
+          # distances <-
+    # sqrt(sum(( (matr - state.F)
+    #            # %*% diag(1/scaling_vector(n, type = type))
+    # )**2)/n)
+  }
+  return(ret)
 }
 
 # energy(hEncod_sublist[[5]])

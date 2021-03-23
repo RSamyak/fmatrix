@@ -4,7 +4,7 @@
 \alias{frechet_var_pop}
 \title{frechet variance of population}
 \usage{
-frechet_var_pop(F.list, probs, dist = c("l1", "l2"))
+frechet_var_pop(F.list, probs, dist = c("l2", "l1"))
 }
 \arguments{
 \item{dist}{}

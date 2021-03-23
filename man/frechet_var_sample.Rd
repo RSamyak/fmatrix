@@ -4,7 +4,7 @@
 \alias{frechet_var_sample}
 \title{frechet variance of sample}
 \usage{
-frechet_var_sample(F.list, dist = c("l1", "l2"))
+frechet_var_sample(F.list, dist = c("l2", "l1"))
 }
 \arguments{
 \item{dist}{}

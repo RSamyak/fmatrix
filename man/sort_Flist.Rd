@@ -4,7 +4,13 @@
 \alias{sort_Flist}
 \title{Sort a list of F-matrices}
 \usage{
-sort_Flist(F.list, n = ncol(F.list[[1]]) + 1, return_dist = FALSE)
+sort_Flist(
+  F.list,
+  n = ncol(F.list[[1]]) + 1,
+  return_dist = FALSE,
+  precomp = precomp_bal_unb_kin(n),
+  tol = 1e-08
+)
 }
 \arguments{
 \item{F.list}{}

@@ -1,7 +1,11 @@
-install.packages(path_to_package, repos = NULL, type = "source")
+# install.packages(path_to_package, repos = NULL, type = "source")
 
 library(tidyverse)
+library(phylodyn)
 library(fmatrix)
+
+library(foreach)
+library(doParallel)
 
 source("sa_chain_hetero.R")
 source("sa_chain_helper.R")
@@ -38,6 +42,13 @@ do_everything <- function(filename, suffix) {
   saveRDS(get(paste0("mcctree_", suffix)), file = paste0("mcctree_", suffix, ".RDS"))
 }
 
-for(i in 1:length(files_list)){
+
+registerDoParallel(cores=(Sys.getenv("SLURM_NTASKS_PER_NODE")))
+
+foreach(i = 1:length(files_list)) %dopar% {
   do_everything(file.path(path_to_files, files_list[i]), suffix_list[i])
 }
+
+# for(i in 1:length(files_list)){
+#
+# }

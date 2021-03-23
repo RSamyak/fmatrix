@@ -17,19 +17,11 @@ inv.index <- function(k, eps = 1e-6){
 #' @export gurobi_kingman_mean
 gurobi_kingman_mean <- function(n, qmat = kingman_m(n)){
 
-  # qmat <- kingman_m(n)
-
-  #install.packages('/Library/gurobi911/mac64/R/gurobi_9.1-1_R_4.0.2.tgz', repos=NULL)
-  #install.packages('slam')
-  #library(gurobi)
-  #library(slam)
-
-  # n <- ncol(F.list[[1]]) + 1
+  require(gurobi)
 
   NVar <- n*(n-1)/2
 
 
-  # temp <- simple_triplet_zero_matrix(nrow = NConst, ncol = NVar)
 
 
   myQ <- slam::simple_triplet_diag_matrix(rep(1, NVar))

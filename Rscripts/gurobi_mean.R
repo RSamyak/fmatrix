@@ -17,25 +17,25 @@ inv.index <- function(k, eps = 1e-6){
 }
 
 #####################################
-B <- 1000
+# B <- 1000
 
-uniform_means<-list()
-Tajima_means<-list()
-count1<-0
-for (nn in 5:11){
-count1<-count1+1
-##For population mean
-res<-construct_trees(nn)
-F.list<-list()
-for (j in 1:nrow(res$res)){
-  F.list[[j]]<- Fmat_from_construct(nn, res$res[j,], res$F.matrixRel)
-}
-
-##For sample mean
-# F.list <- list()
-# for(i in 1:B){
-#   F.list <- append(F.list, list(phylodyn:::gen_Fmat(rcoal(nn, br = 1))))
+# uniform_means<-list()
+# Tajima_means<-list()
+# count1<-0
+# for (nn in 5:11){
+# count1<-count1+1
+# ##For population mean
+# res<-construct_trees(nn)
+# F.list<-list()
+# for (j in 1:nrow(res$res)){
+#   F.list[[j]]<- Fmat_from_construct(nn, res$res[j,], res$F.matrixRel)
 # }
+#
+# ##For sample mean
+# # F.list <- list()
+# # for(i in 1:B){
+# #   F.list <- append(F.list, list(phylodyn:::gen_Fmat(rcoal(nn, br = 1))))
+# # }
 
 library(fmatrix)
 
@@ -43,18 +43,23 @@ library(fmatrix)
 
 #qmat <- meanF(F.list)
 
+
+
 ##population
- qmat<-matrix(0,nrow=nrow(F.list[[1]]),ncol=nrow(F.list[[1]]))
- for (j in 1:length(F.list)){
-   qmat<-qmat+F.list[[j]]*kingman_likelihood(F.list[[j]])
- }
+ # qmat<-matrix(0,nrow=nrow(F.list[[1]]),ncol=nrow(F.list[[1]]))
+ # for (j in 1:length(F.list)){
+ #   qmat<-qmat+F.list[[j]]*kingman_likelihood(F.list[[j]])
+ # }
+
+n <- 11
+qmat <- kingman_m(n)
 
 #install.packages('/Library/gurobi911/mac64/R/gurobi_9.1-1_R_4.0.2.tgz', repos=NULL)
 #install.packages('slam')
 #library(gurobi)
 #library(slam)
 
-n <- ncol(F.list[[1]]) + 1
+# n <- ncol(F.list[[1]]) + 1
 
 NVar <- n*(n-1)/2
 

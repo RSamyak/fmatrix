@@ -55,7 +55,8 @@ brute.mean<-function(sampleF,totalF.list, dist=c("l2","l1")){
 brute.mean.weighted<-function(sampleF,
                               totalF.list,
                               dist=c("l2","l1"),
-                              weights = rep(1, length(sampleF))){
+                              weights = rep(1, length(sampleF)),
+                              all = FALSE){
   ##Brute force frechet mean  (weighted)
 
   dist <- match.arg(dist)
@@ -74,8 +75,8 @@ brute.mean.weighted<-function(sampleF,
     total<-apply(dist.matrix,1,sum)
     ret <- which(total == min(total, na.rm = TRUE))
     if(length(ret) > 1) {
-      ret <- ret[1]
-      warning("minimiser not unique")
+      warning(sprintf("minimiser not unique: %s", paste(ret, collapse = " ")))
+      if(!all) ret <- ret[1]
     }
   }
 
@@ -93,8 +94,9 @@ brute.mean.weighted<-function(sampleF,
 
     ret <- which(distances == min(distances, na.rm = TRUE))
     if(length(ret) > 1) {
-      ret <- ret[1]
-      warning("minimiser not unique")
+      warning(sprintf("minimiser not unique: %s", paste(ret, collapse = " ")))
+      if(!all) ret <- ret[1]
+
     }
     # ret <- which.min(distances)
 
@@ -282,4 +284,18 @@ scaling_vector <- function(n, type = 0){
   }
 
   return(ret)
+}
+
+#' Plot Heatmap of F-matrix
+#'
+#' Plot heatmap of F-matrix
+#'
+#' @param m    F-matrix
+#' @param ...  Arguments to be passed to heatmap
+#'
+#' @export heatF
+heatF <- function(m, ...){
+  heatmap(m[nrow(m):1,], Rowv=NA, Colv=NA, revC = FALSE,
+          scale = "none",
+          labRow = NA, labCol = NA, ...)
 }
