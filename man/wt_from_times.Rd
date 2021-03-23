@@ -4,7 +4,7 @@
 \alias{wt_from_times}
 \title{Get weight matrix from coalescent times}
 \usage{
-wt_from_times(coal_times, type = c("1", "2"))
+wt_from_times(coal_times, type = c("2", "1"))
 }
 \arguments{
 \item{type}{}

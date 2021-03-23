@@ -4,7 +4,7 @@
 \alias{times_from_wt}
 \title{Get coalescent times from weight matrix}
 \usage{
-times_from_wt(wt, type = c("1", "2"))
+times_from_wt(wt, type = c("2", "1"))
 }
 \arguments{
 \item{wt}{}

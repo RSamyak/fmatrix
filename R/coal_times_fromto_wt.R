@@ -7,7 +7,7 @@
 #' @param type
 #'
 #' @export wt_from_times
-wt_from_times <- function(coal_times, type = c("1", "2")){
+wt_from_times <- function(coal_times, type = c("2", "1")){
   type <- match.arg(type)
 
   if(is.unsorted(rev(coal_times))) stop("coal_times not sorted")
@@ -43,7 +43,7 @@ wt_from_times <- function(coal_times, type = c("1", "2")){
 #' @param wt
 #'
 #' @export times_from_wt
-times_from_wt <- function(wt, type = c("1", "2")){
+times_from_wt <- function(wt, type = c("2", "1")){
   type <- match.arg(type)
   if(type == "1"){
     ret <- cumsum(rev(wt[, 1]))
