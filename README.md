@@ -11,3 +11,7 @@ The purpose of fmatrix is summarize a sample of ranked tree shapes or ranked gen
     a. Install_github("RSamyak/fmatrix"), or
     
     b. Install_github("RSamyak/fmatrix", build_vignettes = TRUE) if you want some illustrative vignettes (note: using build_vignettes = TRUE will make the install take longer).
+
+## References
+
+1. Rajanala Samyak, Julia A. Palacios. [Statistical summaries of unlabelled evolutionary trees and ranked hierarchical clustering trees](https://arxiv.org/pdf/2106.02724.pdf), 2021.
