@@ -1,7 +1,7 @@
 # fmatrix
 The purpose of fmatrix is summarize a sample of ranked tree shapes or ranked genealogies.
 
-# Instalation
+# Installation
 1. Install (if necessary) package dependencies and helpers ape, devtools, phylodyn using install.packages and install_github.
 
 2. Load devtools using library(devtools).
