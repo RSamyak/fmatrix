@@ -4,13 +4,15 @@
 #'
 #' @export gen_hEncod
 
-gen_hEncod <- function(tr, tol = 13) {
-
+gen_hEncod <- function(tr, tol = 6) {
   ## Modified from gen_Fmat code from juliapr/phylodyn by RSamyak
 
   if (class(tr) != "phylo") {
     stop("The input tree must be a phylo object")
   }
+
+  summarize_phylo_times <- fmatrix:::summarize_phylo(tr, tol = 10**(-tol))
+
 
   edge.mat <- tr$edge
   n.sample <- tr$Nnode + 1
@@ -23,7 +25,7 @@ gen_hEncod <- function(tr, tol = 13) {
     t.start = n.t[edge.mat[, 2]]
   )
 
-  t.dat <- t.dat[order(t.dat$lab.2), ]
+  t.dat <- t.dat[order(t.dat$lab.2),]
 
   coal.t <- sort(n.t[(n.sample + 1):length(n.t)])
 
@@ -50,37 +52,117 @@ gen_hEncod <- function(tr, tol = 13) {
 
   encod.length <- n.sample + n.c.event
 
-  u.t <- data.frame(
-    t = n.t,
-    lab = seq(1, length(n.t)),
-    type = c(rep("s", n.sample),
-             rep("c", n.c.event))
-  )
+  # ##############################################
+  # ###### This is only to get u.info to get times
+  # u.t <- data.frame(
+  #   t = c(coal.t, sample.t),
+  #   type = c(rep("c",
+  #                n.c.event), rep("s", n.s.event)),
+  #   c.id = c(seq(n.c.event),
+  #            rep(-9, n.s.event)),
+  #   s.id = c(rep(-9, n.c.event), seq(n.s.event)),
+  #   stringsAsFactors = FALSE
+  # )
+  #
+  # u.t <- u.t[order(u.t$t, decreasing = TRUE),]
+  #
+  # rownames(u.t) <- paste("u", 1:(n.c.event + n.s.event), sep = ".")
+  # ###### End
+  # ################################################
 
-  lab.parent <- rep(NA, nrow(u.t))
-  for(i in 1:nrow(u.t)){
+
+  #### This is another u.t to get encod
+  my.u.t <- data.frame(t = n.t,
+                    lab = seq(1, length(n.t)),
+                    type = c(rep("s", n.sample),
+                             rep("c", n.c.event)))
+
+  lab.parent <- rep(NA, nrow(my.u.t))
+  for (i in 1:nrow(my.u.t)) {
     temp <- t.dat$lab.1[which(t.dat$lab.2 == i)]
     lab.parent[i] <- ifelse(length(temp) > 0, temp, NA)
   }
-  u.t$lab.parent <- lab.parent
+  my.u.t$lab.parent <- lab.parent
 
 
-  u.t <- u.t[order(u.t$t, decreasing = TRUE), ]
+  my.u.t <- my.u.t[order(my.u.t$t, decreasing = TRUE),]
 
-  lab.new <- rep(NA, nrow(u.t))
-  lab.new[u.t$type == "c"] <- 2:(n.c.event + 1)
-  lab.new[u.t$type == "s"] <- -1 * u.t$lab[u.t$type == "s"]
+  lab.new <- rep(NA, nrow(my.u.t))
+  lab.new[my.u.t$type == "c"] <- 2:(n.c.event + 1)
+  lab.new[my.u.t$type == "s"] <- -1 * my.u.t$lab[my.u.t$type == "s"]
 
-  u.t$lab.new <- lab.new
+  my.u.t$lab.new <- lab.new
 
 
-  encod <- rename.labels(u.t$lab.parent, u.t$lab, u.t$lab.new, na.replace = 1)
-  encod[u.t$type == "s"] <- -1*encod[u.t$type == "s"]
+  encod <-
+    rename.labels(my.u.t$lab.parent, my.u.t$lab, my.u.t$lab.new, na.replace = 1)
+  encod[my.u.t$type == "s"] <- -1 * encod[my.u.t$type == "s"]
 
   class(encod) <- c(class(encod), "encod")
-  attr(encod, "times") <- u.t$t
+
+
+  attr(encod, "summarize_phylo_times") <- summarize_phylo_times
+
+  times <- sort(c(summarize_phylo_times$samp_times, summarize_phylo_times$coal_times))
+
+  attr(encod, "times") <- times
 
   return(encod)
+}
+
+summarize_phylo <- function (phy, ...)
+{
+  hgpstat <- phylodyn:::heterochronous_gp_stat(phy, ...)
+  return(list(samp_times = hgpstat$samp_times, n_sampled = hgpstat$n_sampled,
+              coal_times = hgpstat$coal_times))
+}
+
+# get_times_from_uinfo <- function(u.info){
+#   n.coal <- max(u.info$c.id)
+#   n.event.1 <- dim(u.info)[1]
+#   c.match.ind.1 <- match(seq(n.coal, 1), u.info$c.id)
+#   n.s.1 <- c(diff(c.match.ind.1) - 1, n.event.1 - c.match.ind.1[n.coal])
+#   n.s.comb <- pmax(n.s.1, n.s.1)
+#   n.a.1 <- n.s.comb - n.s.1
+#   fmat.dim <- n.event.1 + sum(n.a.1)
+#   comb.Fmat.1 <- matrix(0, nrow = fmat.dim, ncol = fmat.dim)
+#   insert.info.1 <- phylodyn:::insert.event(e.vec = u.info$type, t.vec = u.info$t,
+#                                            n.a.vec = n.a.1)
+#   w.mat.1 <- phylodyn:::create.weight.mat.hetero(insert.info.1$comb.t)[-1,-1]
+#   return(times_from_wt(w.mat.1))
+# }
+
+hEncod_times_fillin <- function(hEncod){
+
+  n <- sum(hEncod > 0)
+
+  times <- rep(NA, length(hEncod))
+  coal_times <- times[hEncod > 0] <- (n):1
+
+  m <- length(times)
+  o <- is.na(times)
+
+  count <- n
+
+  cu <- cumsum(hEncod > 0)
+  times <- n + 1 - cu
+  times[hEncod < 0] <- times[hEncod < 0] - .5
+  times[times == .5] <- 0
+
+  samp_times <- times[hEncod < 0]
+
+
+  n_sampled <- unname(table(samp_times))
+  samp_times <- sort(unique(samp_times))
+  coal_times <- sort(coal_times)
+
+  summarize_phylo_times <- list(samp_times = samp_times,
+                                n_sampled = n_sampled,
+                                coal_times = coal_times
+                                )
+
+  return(summarize_phylo_times)
+
 }
 
 
@@ -90,29 +172,32 @@ gen_hEncod <- function(tr, tol = 13) {
 #'
 #' @export tree_from_hEncod
 
-tree_from_hEncod <- function(hEncod, times = NULL){
+tree_from_hEncod <- function(hEncod, summarize_phylo_times = NULL){
 
 
   n <- sum(hEncod > 0)
 
   hEncod <- preprocess_hEncod(hEncod)
 
-  if(is.null(times)){
 
-    if(is.null(attr(hEncod, "times"))){
-      times <- rep(NA, length(hEncod))
-      times[hEncod > 0] <- (n):1
-      #TODO: Not necessarily isochronous
-      times[hEncod < 0] <- 0
+
+  if (is.null(summarize_phylo_times)) {
+    if (is.null(attr(hEncod, "summarize_phylo_times"))) {
+      summarize_phylo_times <- hEncod_times_fillin(hEncod)
     }
     else{
-      times <- attr(hEncod, "times")
+      summarize_phylo_times <- attr(hEncod, "summarize_phylo_times")
     }
   }
 
-  times <- c(times, rep(0, length(hEncod) - length(times)))
+  samp_times <- sort(summarize_phylo_times$samp_times, decreasing = TRUE)
+  coal_times <- sort(summarize_phylo_times$coal_times, decreasing = TRUE)
 
-  max.time <- max(times)
+  all_samp_times <- rep(summarize_phylo_times$samp_times, summarize_phylo_times$n_sampled)
+
+  times <- sort(c(all_samp_times, coal_times), decreasing = TRUE)
+
+
 
 
   edge <- matrix(NA, nrow = 2*n, ncol = 2)
@@ -124,13 +209,13 @@ tree_from_hEncod <- function(hEncod, times = NULL){
   ## Same for tip (external node)
   current_tip <- -1
 
-  internal_times <- times[hEncod > 0]
+  internal_times <- sort(summarize_phylo_times$coal_times, decreasing = TRUE)
 
   for(i in 1:nrow(edge)){
 
     if(hEncod[i + 1] < 0){
       edge[i, ] <- c(-hEncod[i + 1], current_tip)
-      edge.length[i] <- internal_times[-hEncod[i + 1] - 1] - times[i + 1]
+      edge.length[i] <- internal_times[(-1)*hEncod[i + 1] - 1] - times[i + 1]
 
       current_tip <- current_tip - 1
 
@@ -141,7 +226,6 @@ tree_from_hEncod <- function(hEncod, times = NULL){
 
       current_internal_node <- current_internal_node + 1
     }
-
   }
 
   old.labels <- c((-1):(current_tip + 1), 2:(current_internal_node-1))
@@ -391,12 +475,12 @@ proposal_hEncod_new <- function(hEncod, check = FALSE, digits.tol = 6, max.loop 
 
 
     # choose two indexes to change for sign_hEncod
-    i.s <- sample.vec(seq(2, length(hEncod)), 1)
-    j.s <- sample.vec(setdiff(seq(2, length(hEncod)), i.s), 1)
+    # i.s <- sample.vec(seq(2, length(hEncod)), 1)
+    # j.s <- sample.vec(setdiff(seq(2, length(hEncod)), i.s), 1)
 
     sign_ret <- sign_hEncod
-    sign_ret[j.s] <- sign_hEncod[i.s]
-    sign_ret[i.s] <- sign_hEncod[j.s]
+    # sign_ret[j.s] <- sign_hEncod[i.s]
+    # sign_ret[i.s] <- sign_hEncod[j.s]
 
     sign_ret <- 2*sign_ret - 1
 

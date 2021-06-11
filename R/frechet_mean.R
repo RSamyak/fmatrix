@@ -14,16 +14,16 @@ sa_mean <-
            temp.schedule = c("exp", "lin", "log"),
            chain = c("encod", "matching"),
            track = FALSE,
-           init.temp = NULL,
-           alpha = NULL,
-           max.iter = NULL) {
+           init.temp = 1000,
+           alpha = .9995,
+           max.iter = 50e3) {
 
     temp.schedule <- match.arg(temp.schedule)
 
     chain <- match.arg(chain)
 
-
-    matrix_F <- matrix_list(F.list)
+    qmat <- meanF(F.list)
+    # matrix_F <- matrix_list(F.list)
 
 
 
@@ -41,7 +41,9 @@ sa_mean <-
 
     if(chain == "matching"){
 
-      energy <- function(state, matr=matrix_F, d="l2"){
+      energy <- function(state, matr, d="l2"){
+
+        matr <- reduce_to_vector(matr)
 
         state.F <- reduce_to_vector(phylodyn:::gen_Fmat(tree_from_matching(state)))
 
@@ -54,15 +56,18 @@ sa_mean <-
       proposal <- proposal_matching
 
       Fmat_from_config <- function(config){
-        gen_Fmat(tree_from_matching(config))
+        phylodyn:::gen_Fmat(tree_from_matching(config))
       }
 
       init <- rcoal(n, br = 1)
       config <- matching(init)
 
-    } else if(chain == "encod"){
+    }
+    else if(chain == "encod"){
 
-      energy <- function(state, matr=matrix_F, d="l2"){
+      energy <- function(state, matr, d="l2"){
+
+        matr <- reduce_to_vector(matr)
 
         state.F <- reduce_to_vector(Fmat_from_myencod(state))
 
@@ -79,7 +84,7 @@ sa_mean <-
       }
 
       init <- rcoal(n, br = 1)
-      config <- gen_Fmat(init)
+      config <- phylodyn:::gen_Fmat(init)
       config <- my_encod(config)
 
 
@@ -87,7 +92,7 @@ sa_mean <-
       stop("Invalid chain.")
     }
 
-    e1 <- energy(config) # note sample has been set to default
+    e1 <- energy(config, matr = qmat) # note sample has been set to default
 
     # plot(init, direction = "downwards")
     # tiplabels()
@@ -96,9 +101,7 @@ sa_mean <-
     min.config <- config
     min.energy <- e1
 
-    if(is.null(max.iter)) max.iter <- 25000
 
-    if(is.null(init.temp)) init.temp <- 1000
     temp <- init.temp
     if(is.null(alpha)) alpha <- 0.995
 
@@ -122,7 +125,7 @@ sa_mean <-
     start.time <- Sys.time()
     for(i in 1:max.iter){
       new <- proposal(config)
-      e2 <- energy(new)
+      e2 <- energy(new, matr = qmat)
 
       prob <- probab(e1, e2, temp)
 

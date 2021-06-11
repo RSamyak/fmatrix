@@ -132,13 +132,18 @@ plotF <- function(Fmat, node.labels = NULL, tip.labels = NULL, ...){
 #' @param tree
 #'
 #' @export plotT
-plotT <- function(tree, ...){
+plotT <- function(tree, tree.times = NULL, ...){
   ## Wrapper to plot phylo
   par(mar = c(2,2,2,2))
-  ape::plot.phylo(ape::ladderize(tree),
-                  # direction = "downwards",
-                  show.tip.label = FALSE, ...)
-  ape::axisPhylo()
+  if(is.null(tree.times)){
+    ape::plot.phylo(ape::ladderize(tree),
+                    # direction = "downwards",
+                    show.tip.label = FALSE, ...)
+    ape::axisPhylo()
+  }
+  else{
+
+  }
 }
 
 

@@ -51,7 +51,6 @@ Latex/bf-beta.synctex.gz
 analysis/*
 sim/*
 Rscripts/png/*
-*.RData
 *.RDS
 *.fasta
 *.trees

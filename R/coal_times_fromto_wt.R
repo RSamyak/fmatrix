@@ -18,7 +18,7 @@ wt_from_times <- function(coal_times, type = c("2", "1")){
 
   if(type == "1"){
     appended_coal_times <- append(coal_times, 0)
-    ret <- -diff(appended_coal_times) %*% t(rep(1, n-1))
+    ret <- (-1)*diff(appended_coal_times) %*% t(rep(1, n-1))
     ret[upper.tri(ret)] <- 0
   }
 
