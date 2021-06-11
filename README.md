@@ -8,6 +8,5 @@ The purpose of fmatrix is summarize a sample of ranked tree shapes or ranked gen
 
 3. Install fmatrix using
 
-a. install_github("RSamyak/fmatrix"), or
-
-b. install_github("RSamyak/fmatrix", build_vignettes = TRUE) if you want some illustrative vignettes (note: using build_vignettes = TRUE will make the install take longer).
+  a. install_github("RSamyak/fmatrix"), or
+  b. install_github("RSamyak/fmatrix", build_vignettes = TRUE) if you want some illustrative vignettes (note: using build_vignettes = TRUE will make the install take longer).
