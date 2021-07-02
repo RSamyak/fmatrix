@@ -10,9 +10,9 @@ sa_mean(
   temp.schedule = c("exp", "lin", "log"),
   chain = c("encod", "matching"),
   track = FALSE,
-  init.temp = NULL,
-  alpha = NULL,
-  max.iter = NULL
+  init.temp = 1000,
+  alpha = 0.9995,
+  max.iter = 50000
 )
 }
 \arguments{
