@@ -7,9 +7,11 @@
 rEncod(
   m,
   n,
-  distr = c("BF", "uniform"),
+  distr = c("BF", "uniform", "aldous"),
   b = 0,
   a = b,
+  alpha = 1,
+  eta = 1,
   type = c("encod", "hEncod"),
   ...
 )

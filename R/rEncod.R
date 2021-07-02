@@ -95,8 +95,9 @@ rEncod.single.SV2016 <- function(n, b = 0, a = b,
 #'
 #' @export rEncod
 rEncod <- function(m, n,
-                   distr = c("BF", "uniform"),
+                   distr = c("BF", "uniform", "aldous"),
                    b = 0, a = b,
+                   alpha = 1, eta = 1,
                    type = c("encod", "hEncod"),
                    ...){
   distr <- match.arg(distr)
@@ -110,6 +111,12 @@ rEncod <- function(m, n,
   } else if(distr == "uniform"){
     ret <- lapply(1:m, function(i){rEncod.single.uniform(n = n,
                                                   type = type)})
+  } else if(distr == "aldous"){
+    ret <- lapply(1:m, function(i){rEncod.single.Maliet2018(n = n,
+                                                            b = b,
+                                                            alpha = alpha,
+                                                            eta = eta,
+                                                            type = type, ...)})
   }
   return(ret)
 }
