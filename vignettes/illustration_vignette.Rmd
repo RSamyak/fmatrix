@@ -1,0 +1,212 @@
+---
+title: "Example Vignette: R Package fmatrix"
+author: 'R Samyak'
+date: "29/07/2020"
+output: html_document
+---
+
+We first load the R package:
+```{r setup, include = TRUE}
+library(fmatrix)
+```
+
+
+# Introduction
+
+An $F$-matrix is a lower triangular non-negative integer matrix of a particular form, introduced in Kim et al. (2020).
+
+An example of an $F$-matrix:
+```{r}
+## Note: this function is only for illustrative purposes,
+## does not generate an $F$-matrix from any distribution (yet).
+set.seed(8964)
+mat <- rFmat(8)
+
+mat
+```
+
+
+## Check if a given matrix is an $F$-matrix
+
+We can check if a given object is an $F$-matrix or not.  Note that this check is expensive, and must be used sparingly for large $n$.
+```{r}
+is.Fmat(mat)
+```
+
+
+```{r}
+not_mat <- mat
+not_mat[7, 1] <- 0
+not_mat[5, 3] <- 0
+
+not_mat
+
+is.Fmat(not_mat)
+```
+
+For a given matrix that is not an $F$-matrix, we can also see where the checks fail:
+```{r}
+where.Fmat.debug(not_mat)
+```
+
+
+## Pre-loaded lists of $F$-matrices
+The package contains pre-computed lists of $F$-matrices for $n = 5, ..., 11$ as well as $l^1$ and $l^2$ distances for $n = 5, ..., 9$.
+
+```{r}
+mat2 <- F.list8[[5]]
+```
+
+Note there are $5$ $F$-matrices corresponding to $n=5$.  The order is determined as in $F.list5$, which is available in the package.
+```{r}
+Dmat.l2.5
+```
+
+## Distances between $F$-matrices
+
+We can compute the $l^1$ and $l^2$ distances between two given $F$-matrices.
+```{r}
+distance_Fmat(mat, mat2, dist = "l2")
+```
+
+## $F$-matrices with coalescent times
+
+If we have the branch lengths as well:
+```{r}
+n <- 8
+
+times <- rev(sort(sample(1:50, n-1)))
+times2 <- rev(sort(sample(1:50, n-1)))
+
+wt <- wt_from_times(times)
+wt2 <- wt_from_times(times2)
+
+wFmat <- list(f = mat,
+              w = wt)
+
+wFmat2 <- list(f = mat2,
+               w = wt2)
+
+fmatrix:::distance_Fmat_weighted(wFmat, wFmat2, dist = c("l1"))
+```
+
+
+We can convert a given weight matrix back to coalescent times as well:
+```{r}
+times_from_wt(wt)
+```
+
+## Constructing full list of $F$-matrices
+
+We can use the the `construct_trees` function, borrowed from `JuliaPalacios/phylodyn` to explicitly compute all $F$-matrices for a given $n$.  This should not be used for $n > 11$, since it will take literally forever to run.
+```{r}
+n <- 8
+res<-construct_trees(n)
+nrow(res$res)
+
+F.list<-list()
+for (j in 1:nrow(res$res)){
+  F.list[[j]]<- Fmat_from_construct(n, res$res[j,], res$F.matrixRel)
+}
+
+n.tr <- length(F.list)
+```
+Indeed, there are 272 $F$-matrices for $n = 8$.
+
+
+# Models and Likelihoods
+
+## Kingman model
+
+For a given $F$-matrix, we can calculate its likelihood under the Kingman model:
+```{r}
+kingman_likelihood(mat)
+```
+
+## Blum-Francois $\beta$-splitting model
+
+The Blum-Francois $\beta$-splitting model contains the special case of the Kingman model, which corresponds to $\beta = 0$.  We can calculate the likelihood of a given $F$-matrix under the BF model for different values of $\beta$ in $[-1, \infty)$.
+```{r}
+beta_BF_likelihood(mat, betas = c(0, 4, -1, -2,  1e7))
+```
+
+
+
+
+# Summary statistics for $F$-matrices
+
+## Explicit sample Frechet Mean and Variance
+
+We can calculate the sample Frechet mean and variance for a given sample of $F$-matrices.
+
+```{r}
+sampleF <- sample(1:length(F.list8), 1000, replace = TRUE)
+sampleF <- F.list8[sampleF]
+
+fmatrix:::frechet_var_sample(sampleF, dist = "l1")
+```
+
+We can also calculate the population version under a given model if we know the likelihoods (such as under the BF $\beta$ model)
+
+```{r}
+fullF.list <- F.list8
+probs <- sapply(F.list8, beta_BF_likelihood, betas = 1.5)
+
+fmatrix:::frechet_var_pop(fullF.list, probs, dist = "l2")
+```
+
+For larger $n$, where explicit computation of Frechet mean is intractable, we include functions that allow for constructing a Markov chain on the space of $F$-matrices which can be used for combinatorial optimisation.  (Check `simulations_compare.Rmd`.)
+
+
+# Miscellaneous
+
+## Converting to and from `phylo` objects
+
+```{r}
+library(ape)
+## TODO: This wraps around `tree_from_F` (Jaime's code).  There seems to
+## be a bug in that for large n.
+t <- mytree_from_F(mat2)
+
+t
+
+plot(t, direction = "downwards")
+```
+
+## Plotting trees corresponding to $F$-matrices
+
+We can plot the tree directly from $F$-matrix form as well:
+```{r}
+plotF(mat2)
+```
+
+`plotF.list` is a simple wrapper around `plotF` for a list of $F$-matrices: 
+```{r fig.width = 6, fig.height = 6}
+fmatrix:::plotF.list(F.list6)
+```
+
+
+## Converting to and from $D$-matrices
+
+$D$-matrices are used in proving the bijection between the space of $F$-matrices and the spaes of ranked oriented trees.  The space of $D$-matrices are also in bijection with the space of $F$-matrices.  However, the space of $F$-matrices has better separating properties using the $l^1$ or $l^2$ distances, as in Kim et al. (2020).
+```{r}
+dmat <- fmatrix:::Dmat_from_Fmat(mat)
+dmat
+
+fmatrix:::Fmat_from_Dmat(dmat)
+```
+
+
+## Nearby $F$-matrices
+
+For a given matrix that is close to being an $F$-matrix but not quite one (such as the naive mean of a given sample of $F$-matrices), we might ask to see if there are any $F$-matrices close to it.  A heuristic is developed to compute a list of nearby $F$-matrices:
+
+```{r}
+not_mat
+
+nearby_list <- nearby_Fmats(not_mat)
+
+all(sapply(nearby_list, is.Fmat))
+
+nearby_list
+```

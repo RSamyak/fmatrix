@@ -191,9 +191,15 @@ plotF.list <- function(F.list, nrow = NULL, ncol = NULL, colours = NULL, ...){
 #'
 #' @export plotF.list.png
 plotF.list.png <- function(F.list, folder = "new", ...){
+  len <- length(F.list)
+  digits <- ceiling(log(len + 1, base = 10))
   if(!dir.exists(file.path("png", folder))) dir.create(file.path("png", folder), recursive = TRUE)
   for(i in 1:length(F.list)){
-    png(paste0("png/", folder, "/file",i,".png"))
+    png(paste0("png/",
+               folder,
+               "/file",
+               sprintf(paste0("%0",digits,"d"),i),
+               ".png"))
     plotF(F.list[[i]], ...)
     dev.off()
   }
