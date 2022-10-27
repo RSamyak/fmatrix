@@ -6,7 +6,9 @@
 bubbleSort <- function(list, `%lessthan%` = `%<=%`){
   n <- length(list)
 
-  if(n == 1){return(list)}
+  order <- 1:n
+
+  if(n == 1){return(1)}
 
   `%morethan%` <- function(x, y) `%lessthan%`(y, x)
 
@@ -16,13 +18,13 @@ bubbleSort <- function(list, `%lessthan%` = `%<=%`){
     swapped <- FALSE
     for(i in 2:n){
       # If this pair is out of order
-      if(list[[i-1]] %morethan% list[[i]]){
-        temp <- list[[i]]
-        list[[i]] <- list[[i-1]]
-        list[[i-1]] <- temp
+      if(list[[ order[i-1] ]] %morethan% list[[ order[i] ]]){
+        temp <- order[i]
+        order[i] <- order[i-1]
+        order[i-1] <- temp
         swapped <- TRUE
       }
     }
   }
-  return(list)
+  return(order)
 }

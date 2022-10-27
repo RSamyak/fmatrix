@@ -27,6 +27,9 @@ my_encod <- function(Fmat){
 #'
 #' @export Fmat_from_myencod
 Fmat_from_myencod <- function(myencod){
+
+  if(myencod[1] == 1){myencod <- myencod[-1]}
+
   n <- length(myencod) + 2
 
   ret <- matrix(0, n-1, n-1)

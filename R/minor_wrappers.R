@@ -190,10 +190,18 @@ plotF.list <- function(F.list, nrow = NULL, ncol = NULL, colours = NULL, ...){
 #' @param folder
 #'
 #' @export plotF.list.png
-plotF.list.png <- function(F.list, folder = "new", ...){
+plotF.list.png <- function(F.list, folder = NULL, ...){
+
+  if(is.null(folder)){
+    folder <- "png/new"
+  }
+
+  if(dir.exists(folder)) stop("folder location already exists")
+
+
   len <- length(F.list)
   digits <- ceiling(log(len + 1, base = 10))
-  if(!dir.exists(file.path("png", folder))) dir.create(file.path("png", folder), recursive = TRUE)
+  if(!dir.exists(file.path(folder))) dir.create(file.path(folder), recursive = TRUE)
   for(i in 1:length(F.list)){
     png(paste0("png/",
                folder,
