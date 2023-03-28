@@ -6,7 +6,7 @@
 #' @param coal_times
 #'
 #' @export
-tree_from_F <- function(matF, coal_times){
+  tree_from_F <- function(matF, coal_times){
   #generate an ape tree (Jaime's code)
   #F is the actual form used in the code that differs from the paper's notation
   
@@ -25,13 +25,16 @@ tree_from_F <- function(matF, coal_times){
     F_difference = rev(matF[,j]-matF[,j-1])
     
     if (F_difference[1]==2){
-      edge[next_leaf,1]=new_node
+      edge[next_leaf,1]=c(new_node,new_node)
       vintages=c(vintages, new_node)
     }
     else if (F_difference[1]==1){
       selected_vintage = which(F_difference == 2)[1]+n-1
       edge[selected_vintage,1]=new_node
-      edge[sample(next_leaf,1),1]=new_node
+      if (length(next_leaf)==1){whon<-next_leaf}else{
+      whon<-sample(as.vector(next_leaf),1)}
+      #print(whon)
+      edge[whon,1]=new_node
       vintages = c(vintages[vintages != selected_vintage],new_node)
     }
     else {
